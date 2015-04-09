@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>GetToKnowReact</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <script src="bower_components/react/react.js"></script>
+        <script src="bower_components/react/JSXTransformer.js"></script>
+        <script src="config.js"></script>
+        
+        <style>
+            .newsArticle {
+                width: 33%;
+                box-sizing: border-box;
+                
+                float: left;
+                margin-bottom: 20px;
+            }
+            
+            .newsArticle > .teaser > .newsHeader > h1 {
+                background-color: #000;
+                color: #fff;
+                padding: 10px;
+                display: inline;
+                font-family: sans-serif;
+                font-size: 22px;
+                letter-spacing: -2px;
+                font-weight: 200;
+                position: absolute;
+                bottom: 0;
+                z-index: 2;
+                left: 0;
+            }
+            
+            .newsArticle > .teaser {
+                padding-bottom: 10px;
+                border-bottom: 3px dashed #999;
+            }
+            
+            .newsArticle > .teaser > .newsHeader {
+                position: relative;
+
+            }
+            
+            .newsArticle > .teaser > a {
+                text-decoration: none;
+                font-weight: 900;
+                font-size: 16px;
+                color: deepskyblue;
+                background-color: #000;
+                padding: 5px 30px;
+                border-radius: 12px;
+            }
+        </style>
+        
+    </head>
+    <body>
+        
+        <div id="newsqueue"></div>
+        
+        <script type="text/jsx">
+        var Headline = React.createClass({
+            render: function() {
+                return (
+                    <h1>{this.props.children.toString()}</h1>
+                );
+            }
+        });
+            
+        var NewsArticle = React.createClass({
+            render: function() {
+                return (
+                    <div className="newsArticle">
+                        <div className="teaser">
+                            <div className="newsHeader">
+                                <img src={this.props.item.image.url}></img>
+                                <Headline>{this.props.item.title.value}</Headline>
+                            </div>
+                            <p>{this.props.item.abstract.value}</p>
+                            <a href="#">More</a>
+                        </div>
+                    </div>
+                );
+            }
+        });
+        
+        var NewsQueue = React.createClass({
+            getInitialState: function() {
+                return {newsList: []};
+            },
+            componentDidMount: function() {
+                var self = this;
+                
+                var newsListRequest = new XMLHttpRequest();
+                
+                newsListRequest.onreadystatechange = function()
+                {
+                    if (newsListRequest.readyState == 4 && newsListRequest.status == 200)
+                    {
+                        self.setState({
+                            newsList: JSON.parse(newsListRequest.responseText).queue_items
+                        });
+                    }
+                    
+                }
+                
+                newsListRequest.open("GET", this.props.url, true);
+                newsListRequest.send();
+            },
+            render: function() {
+                console.log(this.state.newsList);
+                var newsItems = this.state.newsList.map(function(newsItem){
+                    return (
+                        <NewsArticle item={newsItem}></NewsArticle>
+                    )
+                });
+                
+                return (
+                    <div className="newsQueue">
+                        {newsItems}
+                    </div>
+                );
+            }
+        });
+        
+        React.render(
+            <NewsQueue url={window.config.url}/>,
+            document.getElementById('newsqueue')
+        );
+        
+        </script>
+    </body>
+</html>
